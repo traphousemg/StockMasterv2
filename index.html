@@ -1308,8 +1308,15 @@ function subscribeProducts() {
 
 function subscribeHistory() {
   if (useFirebase) {
-    unsubHistory = db.collection('history').orderBy('timestamp', 'desc').onSnapshot(snap => {
+    unsubHistory = db.collection('history').onSnapshot(snap => {
       history = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Robust im Client sortieren (neueste zuerst) — kein orderBy/Index,
+      // funktioniert auch wenn serverTimestamp noch null ist
+      history.sort((a, b) => {
+        const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
+        const tb = b.createdAt ? Date.parse(b.createdAt) : 0;
+        return tb - ta;
+      });
       renderHistory();
       renderAccounting();
     }, err => {
@@ -1657,13 +1664,14 @@ window.saveBooking = async () => {
     user:        currentUser.displayName,
     userEmail:   currentUser.email || '',
     userId:      currentUser.uid   || '',
+    createdAt:   now,
     timestamp:   now,
   };
 
   try {
     if (useFirebase) {
       await db.collection('products').doc(bookingProductId).update({ stock: newStock });
-      await db.collection('history').add({ ...histEntry, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+      await db.collection('history').add({ ...histEntry, timestamp: firebase.firestore.FieldValue.serverTimestamp(), createdAt: now });
     } else {
       let prods = localGet('products');
       const idx = prods.findIndex(x => x.id === bookingProductId);
@@ -1708,7 +1716,8 @@ function renderHistory() {
   }
 
   container.innerHTML = list.map(h => {
-    const date    = h.timestamp?.toDate ? h.timestamp.toDate() : new Date(h.timestamp || Date.now());
+    const date    = h.createdAt ? new Date(h.createdAt)
+                    : (h.timestamp?.toDate ? h.timestamp.toDate() : new Date(h.timestamp || Date.now()));
     const dateStr = date.toLocaleDateString('de-DE') + ' ' + date.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
     const val     = h.type === 'out'
       ? (h.qty || 0) * (h.sellPrice || 0)
