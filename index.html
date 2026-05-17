@@ -255,6 +255,7 @@ body {
 /* SECTIONS */
 .section { display: none; padding: 16px 20px 120px; }
 .section.active { display: block; }
+#sec-chat.active { padding-bottom: 150px; }
 
 .section-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -281,6 +282,91 @@ body {
 }
 
 .btn-clear-history:active { transform: scale(0.97); }
+
+/* CHAT */
+.chat-messages {
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 50vh; padding-bottom: 8px;
+}
+
+.chat-msg {
+  max-width: 78%; padding: 10px 14px; border-radius: 14px;
+  background: var(--bg2); border: 1px solid var(--border);
+  align-self: flex-start;
+}
+
+.chat-msg.mine {
+  align-self: flex-end;
+  background: var(--bg4); border-color: var(--border2);
+}
+
+.chat-msg-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 4px;
+}
+
+.chat-msg-author {
+  font-size: 11px; font-weight: 700; color: var(--text2);
+  font-family: var(--font-mono);
+}
+
+.chat-msg-role {
+  font-size: 9px; font-family: var(--font-mono); letter-spacing: 1px;
+  padding: 2px 6px; border-radius: 10px;
+  background: var(--bg3); color: var(--text3);
+}
+
+.chat-msg-text {
+  font-size: 14px; line-height: 1.45; color: var(--text);
+  word-break: break-word; white-space: pre-wrap;
+}
+
+.chat-msg-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: 6px;
+}
+
+.chat-msg-time {
+  font-size: 10px; color: var(--text3); font-family: var(--font-mono);
+}
+
+.chat-msg-del {
+  background: none; border: none; color: var(--red);
+  font-size: 12px; cursor: pointer; padding: 0;
+  font-family: var(--font-mono); opacity: .7;
+}
+
+.chat-msg-del:active { opacity: 1; }
+
+.chat-input-bar {
+  position: fixed; left: 0; right: 0; bottom: 64px; z-index: 150;
+  display: flex; gap: 8px; padding: 10px 20px;
+  background: rgba(18,18,20,0.97);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0));
+}
+
+.chat-input {
+  flex: 1; padding: 12px 16px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 100px; color: var(--text);
+  font-size: 15px; font-family: var(--font-main);
+  outline: none; -webkit-appearance: none;
+}
+
+.chat-input:focus { border-color: var(--border2); }
+.chat-input::placeholder { color: var(--text3); }
+
+.chat-send-btn {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border-radius: 50%; border: 1px solid var(--border2);
+  background: var(--bg4); color: var(--text);
+  font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.chat-send-btn:active { transform: scale(0.94); }
 
 /* SEARCH */
 .search-bar {
@@ -891,6 +977,25 @@ textarea.input-field { resize: none; min-height: 80px; }
     <div id="usersList"></div>
   </div>
 
+  <!-- CHAT -->
+  <div class="section" id="sec-chat">
+    <div class="section-header">
+      <div class="section-title" data-de="Chat" data-en="Chat">Chat</div>
+      <button class="btn-clear-history admin-only" id="btnClearChat" onclick="confirmClearChat()">
+        🗑 <span data-de="Alles löschen" data-en="Clear all">Alles löschen</span>
+      </button>
+    </div>
+    <div id="chatMessages" class="chat-messages">
+      <div class="loading"><div class="spinner"></div> Loading…</div>
+    </div>
+    <div class="chat-input-bar">
+      <input type="text" id="chatInput" class="chat-input"
+             placeholder="Nachricht / Message…" maxlength="1000"
+             onkeydown="if(event.key==='Enter')sendChatMessage()">
+      <button class="chat-send-btn" onclick="sendChatMessage()" id="chatSendBtn">➤</button>
+    </div>
+  </div>
+
   <!-- BOTTOM NAV (fixed) -->
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="showSection('warehouse')" id="tab-warehouse">
@@ -901,6 +1006,9 @@ textarea.input-field { resize: none; min-height: 80px; }
     </div>
     <div class="nav-tab" onclick="showSection('notes')" id="tab-notes">
       <span class="nav-icon">📝</span><span data-de="Notizen" data-en="Notes">Notizen</span>
+    </div>
+    <div class="nav-tab" onclick="showSection('chat')" id="tab-chat">
+      <span class="nav-icon">💬</span><span data-de="Chat" data-en="Chat">Chat</span>
     </div>
     <div class="nav-tab" onclick="showSection('history')" id="tab-history">
       <span class="nav-icon">📋</span><span data-de="Historie" data-en="History">Historie</span>
@@ -1100,6 +1208,8 @@ let bookingType       = 'in';
 let unsubProducts     = null;
 let unsubHistory      = null;
 let unsubNotes        = null;
+let unsubChat         = null;
+let chatMessages      = [];
 
 const EUR_USD = 1.08;
 
@@ -1224,6 +1334,7 @@ auth && auth.onAuthStateChanged(async (fbUser) => {
     if (unsubProducts) { if (typeof unsubProducts === 'function') unsubProducts(); else clearInterval(unsubProducts); unsubProducts = null; }
     if (unsubHistory)  { if (typeof unsubHistory  === 'function') unsubHistory();  else clearInterval(unsubHistory);  unsubHistory  = null; }
     if (unsubNotes)    { if (typeof unsubNotes    === 'function') unsubNotes();    else clearInterval(unsubNotes);    unsubNotes    = null; }
+    if (unsubChat)     { if (typeof unsubChat     === 'function') unsubChat();     else clearInterval(unsubChat);     unsubChat     = null; }
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
     document.getElementById('loginUser').value = '';
@@ -1246,6 +1357,7 @@ function initApp() {
   subscribeProducts();
   subscribeHistory();
   subscribeNotes();
+  subscribeChat();
   showSection('warehouse');
 }
 
@@ -1344,6 +1456,13 @@ window.showSection = (name) => {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('sec-' + name).classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'chat') {
+    setTimeout(() => {
+      const c = document.getElementById('chatMessages');
+      if (c) c.scrollTop = c.scrollHeight;
+      window.scrollTo(0, document.body.scrollHeight);
+    }, 50);
+  }
 };
 
 // ══════════════════════════════════════════════
@@ -1811,6 +1930,194 @@ async function clearHistory() {
       renderSummary();
     }
     showToast(t('Historie gelöscht ✓','History cleared ✓'), 'success');
+  } catch(e) {
+    console.error(e);
+    showToast(t('Fehler beim Löschen','Delete error'), 'error');
+  }
+}
+
+// ══════════════════════════════════════════════
+// CHAT  (Echtzeit zwischen allen angemeldeten Benutzern)
+// ══════════════════════════════════════════════
+function subscribeChat() {
+  if (useFirebase) {
+    unsubChat = db.collection('chat').orderBy('createdAt', 'asc').onSnapshot(snap => {
+      chatMessages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderChat();
+    }, err => {
+      console.error('Chat error:', err);
+      showToast(t('Chat: Verbindungsfehler','Chat: connection error'), 'error');
+      chatMessages = localGet('chat');
+      renderChat();
+    });
+  } else {
+    chatMessages = localGet('chat');
+    renderChat();
+    unsubChat = setInterval(() => {
+      chatMessages = localGet('chat');
+      renderChat();
+    }, 3000);
+  }
+}
+
+function renderChat() {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+
+  if (chatMessages.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">💬</div>
+      <div class="empty-text">${t('Noch keine Nachrichten', 'No messages yet')}</div>
+    </div>`;
+    return;
+  }
+
+  const isAdmin = currentUser?.role === 'admin';
+  const myId    = currentUser?.uid || '';
+
+  container.innerHTML = chatMessages.map(m => {
+    const mine = m.userId && m.userId === myId;
+    const dt   = m.createdAt ? new Date(m.createdAt) : null;
+    const time = dt
+      ? dt.toLocaleDateString('de-DE') + ' ' + dt.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' })
+      : '—';
+    const canDelete = isAdmin || mine;
+    const roleLabel = m.userRole === 'admin' ? 'ADMIN' : 'VIEWER';
+
+    return `<div class="chat-msg ${mine ? 'mine' : ''}">
+      <div class="chat-msg-head">
+        <span class="chat-msg-author">${esc(m.userName) || esc(m.userEmail) || '—'}</span>
+        <span class="chat-msg-role">${roleLabel}</span>
+      </div>
+      <div class="chat-msg-text">${esc(m.text)}</div>
+      <div class="chat-msg-foot">
+        <span class="chat-msg-time">${time}</span>
+        ${canDelete ? `<button class="chat-msg-del" onclick="confirmDeleteChatMsg('${m.id}')">🗑 ${t('löschen','delete')}</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Automatisch ans Ende scrollen (neueste Nachricht sichtbar)
+  container.scrollTop = container.scrollHeight;
+  const sec = document.getElementById('sec-chat');
+  if (sec && sec.classList.contains('active')) {
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+}
+
+window.sendChatMessage = async () => {
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  if (!currentUser) { showToast(t('Nicht angemeldet','Not signed in'), 'error'); return; }
+
+  const now = new Date().toISOString();
+  const msg = {
+    text,
+    userId:    currentUser.uid || '',
+    userName:  currentUser.displayName || '',
+    userEmail: currentUser.email || '',
+    userRole:  currentUser.role || 'viewer',
+    createdAt: now,
+  };
+
+  input.value = '';
+  input.focus();
+
+  try {
+    if (useFirebase) {
+      await db.collection('chat').add(msg);
+    } else {
+      let arr = localGet('chat');
+      msg.id = localId();
+      arr.push(msg);
+      localSet('chat', arr);
+      chatMessages = arr;
+      renderChat();
+    }
+  } catch(e) {
+    console.error(e);
+    showToast(t('Nachricht nicht gesendet','Message not sent'), 'error');
+    input.value = text; // Text zurückgeben, damit nichts verloren geht
+  }
+};
+
+window.confirmDeleteChatMsg = (id) => {
+  const m = chatMessages.find(x => x.id === id);
+  if (!m) return;
+  const isAdmin = currentUser?.role === 'admin';
+  const mine    = m.userId && m.userId === (currentUser?.uid || '');
+  if (!isAdmin && !mine) {
+    showToast(t('Nur eigene Nachrichten','Only your own messages'), 'error');
+    return;
+  }
+  document.getElementById('confirmTitle').textContent = t('⚠ Nachricht löschen?', '⚠ Delete message?');
+  document.getElementById('confirmText').textContent  =
+    t('Diese Nachricht wirklich löschen?', 'Really delete this message?');
+  document.getElementById('confirmOkBtn').onclick = () => deleteChatMsg(id);
+  document.getElementById('confirmOverlay').classList.add('active');
+};
+
+async function deleteChatMsg(id) {
+  closeConfirm();
+  try {
+    if (useFirebase) {
+      await db.collection('chat').doc(id).delete();
+    } else {
+      let arr = localGet('chat').filter(m => m.id !== id);
+      localSet('chat', arr);
+      chatMessages = arr;
+      renderChat();
+    }
+    showToast(t('Nachricht gelöscht','Message deleted'), 'success');
+  } catch(e) {
+    console.error(e);
+    showToast(t('Fehler beim Löschen','Delete error'), 'error');
+  }
+}
+
+window.confirmClearChat = () => {
+  if (currentUser?.role !== 'admin') {
+    showToast(t('Nur Admins','Admins only'), 'error');
+    return;
+  }
+  if (chatMessages.length === 0) {
+    showToast(t('Chat ist bereits leer','Chat already empty'), 'error');
+    return;
+  }
+  document.getElementById('confirmTitle').textContent = t('⚠ Chat löschen?', '⚠ Clear chat?');
+  document.getElementById('confirmText').textContent  =
+    t(`Wirklich alle ${chatMessages.length} Nachrichten unwiderruflich löschen?`,
+      `Permanently delete all ${chatMessages.length} messages?`);
+  document.getElementById('confirmOkBtn').onclick = () => clearChat();
+  document.getElementById('confirmOverlay').classList.add('active');
+};
+
+async function clearChat() {
+  closeConfirm();
+  try {
+    if (useFirebase) {
+      const snap = await db.collection('chat').get();
+      const batchSize = 400;
+      let batch = db.batch();
+      let count = 0;
+      for (const doc of snap.docs) {
+        batch.delete(doc.ref);
+        count++;
+        if (count % batchSize === 0) {
+          await batch.commit();
+          batch = db.batch();
+        }
+      }
+      if (count % batchSize !== 0) await batch.commit();
+      chatMessages = [];
+      renderChat();
+    } else {
+      localSet('chat', []);
+      chatMessages = [];
+      renderChat();
+    }
+    showToast(t('Chat gelöscht ✓','Chat cleared ✓'), 'success');
   } catch(e) {
     console.error(e);
     showToast(t('Fehler beim Löschen','Delete error'), 'error');
