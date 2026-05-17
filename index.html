@@ -902,9 +902,6 @@ textarea.input-field { resize: none; min-height: 80px; }
     <div class="nav-tab" onclick="showSection('notes')" id="tab-notes">
       <span class="nav-icon">📝</span><span data-de="Notizen" data-en="Notes">Notizen</span>
     </div>
-    <div class="nav-tab admin-only" onclick="showSection('users')" id="tab-users" style="display:none;">
-      <span class="nav-icon">👥</span><span data-de="Benutzer" data-en="Users">Benutzer</span>
-    </div>
     <div class="nav-tab" onclick="showSection('history')" id="tab-history">
       <span class="nav-icon">📋</span><span data-de="Historie" data-en="History">Historie</span>
     </div>
@@ -1245,11 +1242,6 @@ function initApp() {
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
   });
-
-  if (isAdmin) {
-    document.getElementById('tab-users').style.display = '';
-    renderUsers();
-  }
 
   subscribeProducts();
   subscribeHistory();
