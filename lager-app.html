@@ -1033,14 +1033,13 @@ textarea.input-field { resize: none; min-height: 80px; }
 // SCHRITT 1: Trage hier deine Firebase-Daten ein.
 // Falls du Firebase noch nicht eingerichtet hast,
 // läuft die App automatisch im OFFLINE-Modus (localStorage).
-// ══════════════════════════════════════════════
-const firebaseConfig = {
-  apiKey: "DEIN_API_KEY",
-  authDomain: "DEIN_PROJECT.firebaseapp.com",
-  projectId: "DEIN_PROJECT_ID",
-  storageBucket: "DEIN_PROJECT.appspot.com",
-  messagingSenderId: "DEINE_SENDER_ID",
-  appId: "DEINE_APP_ID"
+// ══════════════════════════════════════════════const firebaseConfig = {
+  apiKey: "AIzaSyAz3n_y50plYRDdSIGvu73wzJWmpATqH3U",
+  authDomain: "lagerfinanz.firebaseapp.com",
+  projectId: "lagerfinanz",
+  storageBucket: "lagerfinanz.firebasestorage.app",
+  messagingSenderId: "809080479712",
+  appId: "1:809080479712:web:247c1e25a8bc03a4f49585"
 };
 
 // Firebase initialisieren — bei Fehler → Offline-Modus
@@ -1048,7 +1047,8 @@ let db = null;
 let useFirebase = false;
 
 try {
-  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "DEIN_API_KEY") {
+if (firebaseConfig.apiKey) {
+
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     useFirebase = true;
