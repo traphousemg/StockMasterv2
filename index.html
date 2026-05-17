@@ -12,23 +12,22 @@
 
 <style>
 :root {
-  --bg: #0a0a0f;
-  --bg2: #111118;
-  --bg3: #1a1a24;
-  --bg4: #222230;
-  --border: #2a2a3a;
-  --border2: #3a3a50;
-  --text: #e8e8f0;
-  --text2: #9090a8;
-  --text3: #5a5a72;
-  --accent: #4f8aff;
-  --accent2: #6fa3ff;
+  --bg: #0a0a0c;
+  --bg2: #121214;
+  --bg3: #1b1b1f;
+  --bg4: #242429;
+  --border: #2a2a30;
+  --border2: #38383f;
+  --text: #e8e8ec;
+  --text2: #9a9aa2;
+  --text3: #5e5e68;
+  --accent: #8a8a94;
+  --accent2: #b0b0ba;
   --green: #2ecc71;
   --green2: #27ae60;
   --red: #e74c3c;
   --red2: #c0392b;
-  --gold: #f39c12;
-  --purple: #9b59b6;
+  --neutral: #8a8a94;
   --radius: 14px;
   --radius-sm: 8px;
   --font-main: 'Syne', sans-serif;
@@ -69,7 +68,7 @@ body {
   margin-bottom: 4px; text-align: center;
 }
 
-.login-title span { color: var(--accent); }
+.login-title span { color: var(--accent2); }
 
 .login-subtitle {
   font-size: 13px; color: var(--text3); margin-bottom: 48px;
@@ -93,7 +92,7 @@ body {
   color: var(--text3); transition: all .2s;
 }
 
-.login-tab.active { background: var(--accent); color: white; }
+.login-tab.active { background: var(--bg4); color: var(--text); }
 
 .input-group { margin-bottom: 16px; }
 
@@ -111,16 +110,16 @@ body {
   -webkit-appearance: none;
 }
 
-.input-field:focus { border-color: var(--accent); }
+.input-field:focus { border-color: var(--border2); }
 
 .btn-primary {
-  width: 100%; padding: 16px; background: var(--accent);
-  border: none; border-radius: var(--radius-sm); color: white;
+  width: 100%; padding: 16px; background: var(--bg4);
+  border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text);
   font-size: 15px; font-weight: 700; font-family: var(--font-main);
   cursor: pointer; transition: all .2s; margin-top: 8px;
 }
 
-.btn-primary:active { transform: scale(0.98); background: var(--accent2); }
+.btn-primary:active { transform: scale(0.98); background: var(--border2); }
 
 .login-error {
   color: var(--red); font-size: 13px; text-align: center;
@@ -133,7 +132,7 @@ body {
 /* TOPBAR */
 .topbar {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(10,10,15,0.95);
+  background: rgba(10,10,12,0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
@@ -146,7 +145,7 @@ body {
 }
 
 .topbar-brand { font-size: 18px; font-weight: 800; color: var(--text); }
-.topbar-brand span { color: var(--accent); }
+.topbar-brand span { color: var(--accent2); }
 
 .topbar-actions { display: flex; gap: 8px; align-items: center; }
 
@@ -161,15 +160,15 @@ body {
   color: var(--text3); transition: all .2s; border: none; background: none;
 }
 
-.currency-btn.active { background: var(--accent); color: white; }
+.currency-btn.active { background: var(--bg4); color: var(--text); }
 
 .user-badge {
   display: flex; align-items: center; gap: 6px;
   background: var(--bg3); padding: 6px 12px; border-radius: 6px;
 }
 
-.user-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-.user-dot.admin { background: var(--gold); }
+.user-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text2); }
+.user-dot.admin { background: var(--text); }
 
 .user-name { font-size: 12px; font-weight: 600; color: var(--text2); }
 
@@ -209,8 +208,8 @@ body {
 
 .summary-card.green { border-color: rgba(46,204,113,.3); }
 .summary-card.red   { border-color: rgba(231,76,60,.3); }
-.summary-card.blue  { border-color: rgba(79,138,255,.3); }
-.summary-card.gold  { border-color: rgba(243,156,18,.3); }
+.summary-card.blue  { border-color: var(--border); }
+.summary-card.gold  { border-color: var(--border); }
 
 .s-label {
   font-size: 10px; font-family: var(--font-mono); letter-spacing: 2px;
@@ -223,8 +222,8 @@ body {
 
 .s-value.green { color: var(--green); }
 .s-value.red   { color: var(--red); }
-.s-value.blue  { color: var(--accent); }
-.s-value.gold  { color: var(--gold); }
+.s-value.blue  { color: var(--text); }
+.s-value.gold  { color: var(--text); }
 
 .s-sub {
   font-size: 11px; color: var(--text3); margin-top: 3px;
@@ -234,7 +233,7 @@ body {
 /* BOTTOM NAV BAR (fixed) */
 .nav-tabs {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-  display: flex; background: rgba(17,17,24,0.97);
+  display: flex; background: rgba(18,18,20,0.97);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -251,7 +250,7 @@ body {
 
 .nav-tab .nav-icon { font-size: 20px; line-height: 1; }
 
-.nav-tab.active { color: var(--accent); border-top-color: var(--accent); }
+.nav-tab.active { color: var(--text); border-top-color: var(--accent2); }
 
 /* SECTIONS */
 .section { display: none; padding: 16px 20px 120px; }
@@ -265,7 +264,7 @@ body {
 .section-title { font-size: 20px; font-weight: 800; }
 
 .btn-add {
-  background: var(--accent); color: white; border: none;
+  background: var(--bg4); color: var(--text); border: 1px solid var(--border2);
   padding: 10px 18px; border-radius: var(--radius-sm);
   font-size: 13px; font-weight: 700; font-family: var(--font-main);
   cursor: pointer; display: flex; align-items: center; gap: 6px;
@@ -296,7 +295,7 @@ body {
   transition: border-color .2s;
 }
 
-.product-card:active { border-color: var(--accent); }
+.product-card:active { border-color: var(--border2); }
 
 .pc-top {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -310,7 +309,7 @@ body {
 
 .pc-qty { font-size: 22px; font-weight: 800; font-family: var(--font-mono); }
 .pc-qty.low    { color: var(--red); }
-.pc-qty.medium { color: var(--gold); }
+.pc-qty.medium { color: var(--text2); }
 .pc-qty.good   { color: var(--green); }
 
 .pc-unit { font-size: 10px; color: var(--text3); font-family: var(--font-mono); }
@@ -334,7 +333,7 @@ body {
 
 .pt-value.buy    { color: var(--red); }
 .pt-value.sell   { color: var(--green); }
-.pt-value.margin { color: var(--gold); }
+.pt-value.margin { color: var(--text2); }
 
 .pc-actions { display: flex; gap: 8px; }
 
@@ -387,7 +386,7 @@ body {
   margin-top: 2px; word-break: break-word;
 }
 .hi-user {
-  font-size: 11px; color: var(--accent); font-family: var(--font-mono);
+  font-size: 11px; color: var(--text2); font-family: var(--font-mono);
   margin-top: 2px; word-break: break-all;
 }
 
@@ -405,7 +404,6 @@ body {
 }
 
 .note-card.done { opacity: 0.55; }
-.note-card.debt { border-color: rgba(243,156,18,.35); }
 
 .note-top {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -418,11 +416,6 @@ body {
 }
 
 .note-card.done .note-text { text-decoration: line-through; }
-
-.note-amount {
-  font-size: 16px; font-weight: 800; font-family: var(--font-mono);
-  color: var(--gold); white-space: nowrap; flex-shrink: 0;
-}
 
 .note-meta {
   font-size: 11px; color: var(--text3); font-family: var(--font-mono);
@@ -497,8 +490,8 @@ body {
 }
 
 .btn-save {
-  flex: 2; padding: 16px; background: var(--accent);
-  border: none; border-radius: var(--radius-sm); color: white;
+  flex: 2; padding: 16px; background: var(--bg4);
+  border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text);
   font-size: 15px; font-weight: 700; font-family: var(--font-main);
   cursor: pointer;
 }
@@ -547,7 +540,7 @@ body {
   -webkit-appearance: none; margin-bottom: 12px;
 }
 
-.qty-input-big:focus { border-color: var(--accent); }
+.qty-input-big:focus { border-color: var(--border2); }
 
 /* ACCOUNTING */
 .accounting-summary {
@@ -585,8 +578,8 @@ body {
   font-size: 18px; font-weight: 800; flex-shrink: 0;
 }
 
-.user-avatar.admin-avatar  { background: rgba(243,156,18,.2); color: var(--gold); }
-.user-avatar.viewer-avatar { background: rgba(79,138,255,.2); color: var(--accent); }
+.user-avatar.admin-avatar  { background: var(--bg4); color: var(--text); }
+.user-avatar.viewer-avatar { background: var(--bg4); color: var(--text2); }
 
 .user-info { flex: 1; }
 .user-card-name { font-size: 15px; font-weight: 700; }
@@ -597,8 +590,8 @@ body {
   font-weight: 700; font-family: var(--font-mono); letter-spacing: 1px;
 }
 
-.role-badge.admin  { background: rgba(243,156,18,.2); color: var(--gold); }
-.role-badge.viewer { background: rgba(79,138,255,.2); color: var(--accent); }
+.role-badge.admin  { background: var(--bg4); color: var(--text); }
+.role-badge.viewer { background: var(--bg4); color: var(--text2); }
 
 /* TOAST */
 .toast {
@@ -635,7 +628,7 @@ body {
 }
 
 .filter-btn.active {
-  background: var(--accent); border-color: var(--accent); color: white;
+  background: var(--bg4); border-color: var(--border2); color: var(--text);
 }
 
 /* CATEGORY TAG */
@@ -653,7 +646,7 @@ body {
 
 .profit-fill {
   height: 100%; border-radius: 2px;
-  background: linear-gradient(90deg, var(--green2), var(--green));
+  background: var(--accent2);
 }
 
 /* LOADING */
@@ -665,7 +658,7 @@ body {
 
 .spinner {
   width: 20px; height: 20px; border: 2px solid var(--border);
-  border-top-color: var(--accent); border-radius: 50%;
+  border-top-color: var(--accent2); border-radius: 50%;
   animation: spin .8s linear infinite;
 }
 
@@ -833,7 +826,6 @@ textarea.input-field { resize: none; min-height: 80px; }
     </div>
     <div class="filter-strip">
       <button class="filter-btn active" onclick="setNotesFilter('open')" id="nf-open"><span data-de="Offen" data-en="Open">Offen</span></button>
-      <button class="filter-btn" onclick="setNotesFilter('debt')" id="nf-debt">💰 <span data-de="Schulden" data-en="Debts">Schulden</span></button>
       <button class="filter-btn" onclick="setNotesFilter('done')" id="nf-done">✓ <span data-de="Erledigt" data-en="Done">Erledigt</span></button>
       <button class="filter-btn" onclick="setNotesFilter('all')" id="nf-all">All</button>
     </div>
@@ -850,7 +842,7 @@ textarea.input-field { resize: none; min-height: 80px; }
       <div class="as-grid">
         <div class="as-item">
           <div class="as-item-label" data-de="Lagerwert (EK)" data-en="Stock Value (Cost)">Lagerwert (EK)</div>
-          <div class="as-item-value" id="ac-stockcost" style="color:var(--accent)">—</div>
+          <div class="as-item-value" id="ac-stockcost" style="color:var(--text)">—</div>
         </div>
         <div class="as-item">
           <div class="as-item-label" data-de="Lagerwert (VK)" data-en="Stock Value (Retail)">Lagerwert (VK)</div>
@@ -866,11 +858,11 @@ textarea.input-field { resize: none; min-height: 80px; }
         </div>
         <div class="as-item">
           <div class="as-item-label" data-de="Rohgewinn" data-en="Gross Profit">Rohgewinn</div>
-          <div class="as-item-value" id="ac-profit" style="color:var(--gold)">—</div>
+          <div class="as-item-value" id="ac-profit" style="color:var(--text)">—</div>
         </div>
         <div class="as-item">
           <div class="as-item-label" data-de="Marge" data-en="Margin">Marge</div>
-          <div class="as-item-value" id="ac-margin" style="color:var(--purple)">—</div>
+          <div class="as-item-value" id="ac-margin" style="color:var(--text2)">—</div>
         </div>
       </div>
     </div>
@@ -1011,25 +1003,6 @@ textarea.input-field { resize: none; min-height: 80px; }
     <div class="input-group">
       <label class="input-label" data-de="Notiz / Beschreibung" data-en="Note / Description">Notiz / Beschreibung</label>
       <textarea class="input-field" id="nm-text" placeholder="z.B. Kunde Müller schuldet noch Ware aus Lieferung 12"></textarea>
-    </div>
-
-    <div class="form-row">
-      <div class="input-group">
-        <label class="input-label" data-de="Betrag € (optional)" data-en="Amount € (optional)">Betrag € (optional)</label>
-        <input class="input-field" id="nm-amount" type="number" inputmode="decimal" placeholder="0.00" step="0.01">
-      </div>
-      <div class="input-group">
-        <label class="input-label" data-de="Typ" data-en="Type">Typ</label>
-        <select class="input-field" id="nm-type">
-          <option value="note" data-de="Notiz" data-en="Note">Notiz</option>
-          <option value="debt" data-de="Schuld" data-en="Debt">Schuld</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="input-group">
-      <label class="input-label" data-de="Person / Bezug (optional)" data-en="Person / Reference (optional)">Person / Bezug (optional)</label>
-      <input class="input-field" id="nm-ref" type="text" placeholder="z.B. Kunde Müller">
     </div>
 
     <div class="modal-actions">
@@ -1382,9 +1355,15 @@ function renderAll() {
 // SUMMARY
 // ══════════════════════════════════════════════
 function renderSummary() {
+  // Wenn keine Produkte mehr existieren → alles auf 0 zurücksetzen
+  const hasProducts = products.length > 0;
   const stockValue = products.reduce((s, p) => s + (p.stock || 0) * (p.buyPrice || 0), 0);
-  const revenue    = history.filter(h => h.type === 'out').reduce((s, h) => s + ((h.qty || 0) * (h.sellPrice || 0)), 0);
-  const expenses   = history.filter(h => h.type === 'in').reduce((s, h) => s + ((h.qty || 0) * (h.buyPrice || 0)), 0);
+  const revenue    = hasProducts
+    ? history.filter(h => h.type === 'out').reduce((s, h) => s + ((h.qty || 0) * (h.sellPrice || 0)), 0)
+    : 0;
+  const expenses   = hasProducts
+    ? history.filter(h => h.type === 'in').reduce((s, h) => s + ((h.qty || 0) * (h.buyPrice || 0)), 0)
+    : 0;
 
   document.getElementById('sumProducts').textContent  = products.length;
   document.getElementById('sumStockValue').textContent = fmt(stockValue);
@@ -1594,14 +1573,42 @@ async function deleteProduct(id) {
   try {
     if (useFirebase) {
       await db.collection('products').doc(id).delete();
+
+      // Wenn nach dem Löschen keine Produkte mehr übrig sind →
+      // zugehörige Buchhaltungs-/Historiendaten ebenfalls aufräumen,
+      // damit sich die Buchhaltung sauber zurücksetzt.
+      const remaining = await db.collection('products').get();
+      if (remaining.empty) {
+        const histSnap = await db.collection('history').get();
+        const batchSize = 400;
+        let batch = db.batch();
+        let count = 0;
+        for (const doc of histSnap.docs) {
+          batch.delete(doc.ref);
+          count++;
+          if (count % batchSize === 0) {
+            await batch.commit();
+            batch = db.batch();
+          }
+        }
+        if (count % batchSize !== 0) await batch.commit();
+        history = [];
+        renderHistory();
+      }
     } else {
       let prods = localGet('products').filter(p => p.id !== id);
       localSet('products', prods);
       products = prods;
+      if (prods.length === 0) {
+        localSet('history', []);
+        history = [];
+        renderHistory();
+      }
       renderAll();
     }
     showToast(t('Produkt gelöscht','Product deleted'), 'success');
   } catch(e) {
+    console.error(e);
     showToast(t('Fehler beim Löschen','Delete error'), 'error');
   }
 }
@@ -1751,7 +1758,7 @@ window.setHistoryFilter = (f) => {
 };
 
 // ══════════════════════════════════════════════
-// NOTES  (gemeinsamer Notizblock für Schulden etc.)
+// NOTES  (gemeinsamer Notizblock — nur Text)
 // ══════════════════════════════════════════════
 window.openNoteModal = (id = null) => {
   if (currentUser?.role !== 'admin') {
@@ -1765,16 +1772,10 @@ window.openNoteModal = (id = null) => {
     const n = notes.find(x => x.id === id);
     if (!n) return;
     title.textContent = t('Notiz bearbeiten', 'Edit Note');
-    document.getElementById('nm-text').value   = n.text   || '';
-    document.getElementById('nm-amount').value = n.amount  != null ? n.amount : '';
-    document.getElementById('nm-type').value   = n.noteType || 'note';
-    document.getElementById('nm-ref').value    = n.ref     || '';
+    document.getElementById('nm-text').value = n.text || '';
   } else {
     title.textContent = t('Neue Notiz', 'New Note');
-    document.getElementById('nm-text').value   = '';
-    document.getElementById('nm-amount').value = '';
-    document.getElementById('nm-type').value   = 'note';
-    document.getElementById('nm-ref').value    = '';
+    document.getElementById('nm-text').value = '';
   }
 
   document.getElementById('noteModal').classList.add('active');
@@ -1790,12 +1791,8 @@ window.saveNote = async () => {
   const text = document.getElementById('nm-text').value.trim();
   if (!text) { showToast(t('Text fehlt!','Text required!'), 'error'); return; }
 
-  const amountRaw = document.getElementById('nm-amount').value;
   const data = {
     text,
-    amount:   amountRaw === '' ? null : (parseFloat(amountRaw) || 0),
-    noteType: document.getElementById('nm-type').value,
-    ref:      document.getElementById('nm-ref').value.trim(),
     updatedAt: new Date().toISOString(),
     updatedByEmail: currentUser.email || '',
   };
@@ -1886,7 +1883,7 @@ async function deleteNote(id) {
 
 window.setNotesFilter = (f) => {
   notesFilter = f;
-  ['open','debt','done','all'].forEach(x => {
+  ['open','done','all'].forEach(x => {
     document.getElementById('nf-' + x).classList.toggle('active', x === f);
   });
   renderNotes();
@@ -1899,45 +1896,26 @@ function renderNotes() {
 
   if (notesFilter === 'open')      list = list.filter(n => !n.done);
   else if (notesFilter === 'done') list = list.filter(n => n.done);
-  else if (notesFilter === 'debt') list = list.filter(n => n.noteType === 'debt');
-
-  // offene Schulden-Summe
-  const debtTotal = notes
-    .filter(n => n.noteType === 'debt' && !n.done && typeof n.amount === 'number')
-    .reduce((s, n) => s + n.amount, 0);
-
-  let header = '';
-  if (debtTotal > 0) {
-    header = `<div class="note-card debt" style="margin-bottom:14px">
-      <div class="note-top">
-        <div class="note-text">${t('Offene Schulden gesamt','Total open debts')}</div>
-        <div class="note-amount">${fmt(debtTotal)}</div>
-      </div>
-    </div>`;
-  }
 
   if (list.length === 0) {
-    container.innerHTML = header + `<div class="empty-state">
+    container.innerHTML = `<div class="empty-state">
       <div class="empty-icon">📝</div>
       <div class="empty-text">${t('Keine Notizen', 'No notes')}</div>
     </div>`;
     return;
   }
 
-  container.innerHTML = header + list.map(n => {
+  container.innerHTML = list.map(n => {
     const created = n.createdAt ? new Date(n.createdAt) : null;
     const dateStr = created
       ? created.toLocaleDateString('de-DE') + ' ' + created.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' })
       : '—';
     const who = n.createdByEmail || n.createdByName || '—';
-    const isDebt = n.noteType === 'debt';
 
-    return `<div class="note-card ${n.done ? 'done' : ''} ${isDebt ? 'debt' : ''}">
+    return `<div class="note-card ${n.done ? 'done' : ''}">
       <div class="note-top">
-        <div class="note-text">${isDebt ? '💰 ' : ''}${esc(n.text)}</div>
-        ${typeof n.amount === 'number' ? `<div class="note-amount">${fmt(n.amount)}</div>` : ''}
+        <div class="note-text">${esc(n.text)}</div>
       </div>
-      ${n.ref ? `<div class="note-meta">🔖 ${esc(n.ref)}</div>` : ''}
       <div class="note-meta">🗓 ${dateStr} · 👤 ${esc(who)}</div>
       ${n.updatedByEmail && n.updatedByEmail !== n.createdByEmail
         ? `<div class="note-meta">✏️ ${t('zuletzt geändert von','last edited by')} ${esc(n.updatedByEmail)}</div>` : ''}
@@ -1957,10 +1935,19 @@ function renderNotes() {
 // ACCOUNTING
 // ══════════════════════════════════════════════
 function renderAccounting() {
+  const hasProducts = products.length > 0;
+
   const stockCost   = products.reduce((s,p) => s + (p.stock||0)*(p.buyPrice||0),  0);
   const stockRetail = products.reduce((s,p) => s + (p.stock||0)*(p.sellPrice||0), 0);
-  const revenue     = history.filter(h => h.type === 'out').reduce((s,h) => s + (h.qty||0)*(h.sellPrice||0), 0);
-  const costs       = history.filter(h => h.type === 'in').reduce((s,h) => s + (h.qty||0)*(h.buyPrice||0),  0);
+  // Umsatz/Kosten/Gewinn nur anzeigen, wenn überhaupt Produkte existieren —
+  // sonst auf 0 zurücksetzen, damit nach dem Löschen aller Produkte
+  // keine "Geister-Zahlen" stehen bleiben.
+  const revenue     = hasProducts
+    ? history.filter(h => h.type === 'out').reduce((s,h) => s + (h.qty||0)*(h.sellPrice||0), 0)
+    : 0;
+  const costs       = hasProducts
+    ? history.filter(h => h.type === 'in').reduce((s,h) => s + (h.qty||0)*(h.buyPrice||0),  0)
+    : 0;
   const profit      = revenue - costs;
   const margin      = revenue > 0 ? (profit / revenue * 100) : 0;
 
@@ -2020,7 +2007,7 @@ function renderAccounting() {
         </div>
         <div class="price-tag">
           <div class="pt-label">${t('Gewinn','Profit')}</div>
-          <div class="pt-value" style="color:${pProfit>=0?'var(--gold)':'var(--red)'}">${fmt(pProfit)}</div>
+          <div class="pt-value" style="color:${pProfit>=0?'var(--text)':'var(--red)'}">${fmt(pProfit)}</div>
         </div>
       </div>
     </div>`;
