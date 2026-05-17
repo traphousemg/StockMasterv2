@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>StockMaster Pro</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -651,15 +652,10 @@ textarea.input-field { resize: none; min-height: 80px; }
   <div class="login-subtitle">warehouse & accounting v1.0</div>
 
   <div class="login-card">
-    <div class="login-tabs">
-      <div class="login-tab active" onclick="switchLoginTab('admin')">Admin</div>
-      <div class="login-tab" onclick="switchLoginTab('viewer')">Viewer</div>
-    </div>
-
     <div class="input-group">
-      <label class="input-label">Username / Benutzername</label>
-      <input class="input-field" id="loginUser" type="text" autocomplete="username"
-             placeholder="username" autocapitalize="none">
+      <label class="input-label">E-Mail</label>
+      <input class="input-field" id="loginUser" type="email" autocomplete="username"
+             placeholder="name@firma.de" autocapitalize="none">
     </div>
 
     <div class="input-group">
@@ -668,7 +664,7 @@ textarea.input-field { resize: none; min-height: 80px; }
              placeholder="••••••••">
     </div>
 
-    <button class="btn-primary" onclick="doLogin()">Sign In / Anmelden</button>
+    <button class="btn-primary" id="loginBtn" onclick="doLogin()">Sign In / Anmelden</button>
 
     <div class="login-error" id="loginError">
       ⚠ Falsche Zugangsdaten / Wrong credentials
@@ -939,39 +935,9 @@ textarea.input-field { resize: none; min-height: 80px; }
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- PASSWORD CHANGE MODAL -->
-<div class="modal-overlay" id="pwModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="pwModalTitle">Passwort ändern</div>
-    <div class="booking-stock" id="pwModalUser">—</div>
-
-    <div class="input-group">
-      <label class="input-label" data-de="Neues Passwort" data-en="New Password">Neues Passwort</label>
-      <input class="input-field" id="pw-new" type="text" placeholder="Neues Passwort" autocapitalize="none">
-    </div>
-    <div class="input-group">
-      <label class="input-label" data-de="Wiederholen" data-en="Repeat">Wiederholen</label>
-      <input class="input-field" id="pw-confirm" type="text" placeholder="Nochmal eingeben" autocapitalize="none">
-    </div>
-
-    <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.6">
-      ⚠ <span data-de="Änderung gilt nur in diesem Browser." data-en="Change applies only in this browser.">Änderung gilt nur in diesem Browser.</span>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closePwModal()">
-        <span data-de="Abbrechen" data-en="Cancel">Abbrechen</span>
-      </button>
-      <button class="btn-save" onclick="savePassword()">
-        <span data-de="Speichern" data-en="Save">Speichern</span>
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- FIREBASE SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
@@ -987,57 +953,30 @@ const firebaseConfig = {
   appId: "1:809080479712:web:247c1e25a8bc03a4f49585"
 };
 
-// Firebase init — bei Fehler → Offline-Modus (localStorage)
-let db = null;
-let useFirebase = false;
+// Firebase init — Authentication erforderlich (kein Offline-Modus)
+let db   = null;
+let auth = null;
 
 try {
-  if (firebaseConfig.apiKey) {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    useFirebase = true;
-    console.log("✅ Firebase verbunden");
-  } else {
-    console.warn("⚠️ Kein Firebase-Config — Offline-Modus aktiv");
-  }
+  firebase.initializeApp(firebaseConfig);
+  db   = firebase.firestore();
+  auth = firebase.auth();
+  console.log("✅ Firebase verbunden");
 } catch(e) {
-  console.warn("Firebase Fehler, Offline-Modus:", e.message);
+  console.error("Firebase Fehler:", e.message);
+  alert("Firebase konnte nicht geladen werden. Bitte Seite neu laden oder Internetverbindung prüfen.");
 }
 
-// ══════════════════════════════════════════════
-// BENUTZER  ← PASSWÖRTER NACH WUNSCH ÄNDERN
-// ══════════════════════════════════════════════
-const DEFAULT_USERS = {
-  "chef":    { password: "Chef!Lg47xQ", role: "admin",  displayName: "Chef" },
-  "leitung": { password: "Ltg9#Rk2Pm",  role: "admin",  displayName: "Leitung" },
-  "viewer1": { password: "Vw1-Tz83qa",  role: "viewer", displayName: "Viewer 1" },
-  "viewer2": { password: "Vw2-Mq57rb",  role: "viewer", displayName: "Viewer 2" },
-  "viewer3": { password: "Vw3-Ke94sc",  role: "viewer", displayName: "Viewer 3" },
-  "viewer4": { password: "Vw4-Pn28td",  role: "viewer", displayName: "Viewer 4" },
-  "viewer5": { password: "Vw5-Bx61ue",  role: "viewer", displayName: "Viewer 5" },
-};
+// useFirebase bleibt true — App arbeitet ausschließlich mit Firestore.
+const useFirebase = true;
 
-// Passwörter können von Admins geändert werden — Änderungen liegen
-// im Browser (localStorage). Beim ersten Start = Standardpasswörter oben.
-let USERS = (function() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('sm_users') || 'null');
-    if (saved && typeof saved === 'object') {
-      // Standardstruktur mit gespeicherten Passwörtern zusammenführen
-      const merged = {};
-      for (const k in DEFAULT_USERS) {
-        merged[k] = { ...DEFAULT_USERS[k] };
-        if (saved[k] && saved[k].password) merged[k].password = saved[k].password;
-      }
-      return merged;
-    }
-  } catch(e) {}
-  return JSON.parse(JSON.stringify(DEFAULT_USERS));
-})();
-
-function saveUsers() {
-  try { localStorage.setItem('sm_users', JSON.stringify(USERS)); } catch(e) {}
-}
+// ══════════════════════════════════════════════
+// BENUTZERVERWALTUNG
+// Benutzer werden in der Firebase-Konsole verwaltet:
+//   Authentication → Users (anlegen / Passwort ändern / löschen)
+//   Firestore → Sammlung "roles" → Dokument-ID = User-UID, Feld role
+// ══════════════════════════════════════════════
+function saveUsers() { /* nicht mehr verwendet — Firebase verwaltet Benutzer */ }
 
 // ══════════════════════════════════════════════
 // STATE
@@ -1089,28 +1028,45 @@ window.setLang = (l) => {
 function t(de, en) { return currentLang === 'de' ? de : en; }
 
 // ══════════════════════════════════════════════
-// LOGIN / LOGOUT
+// LOGIN / LOGOUT  (Firebase Authentication)
 // ══════════════════════════════════════════════
-window.switchLoginTab = (tab) => {
-  document.querySelectorAll('.login-tab').forEach((el, i) => {
-    el.classList.toggle('active', (i === 0 && tab === 'admin') || (i === 1 && tab === 'viewer'));
-  });
-};
+window.switchLoginTab = () => {}; // nicht mehr verwendet
 
-window.doLogin = () => {
-  const user = document.getElementById('loginUser').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
-  const err  = document.getElementById('loginError');
+window.doLogin = async () => {
+  const email = document.getElementById('loginUser').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginError');
+  const btn   = document.getElementById('loginBtn');
 
-  if (USERS[user] && USERS[user].password === pass) {
-    currentUser = { username: user, ...USERS[user] };
-    err.style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    document.getElementById('app').style.flexDirection = 'column';
-    initApp();
-  } else {
+  if (!email || !pass) {
+    err.textContent = t('⚠ E-Mail und Passwort eingeben', '⚠ Enter email and password');
     err.style.display = 'block';
+    return;
+  }
+
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    // Weiter geht es im onAuthStateChanged-Handler unten
+  } catch(e) {
+    console.warn('Login fehlgeschlagen:', e.code);
+    if (e.code === 'auth/invalid-email' || e.code === 'auth/user-not-found' ||
+        e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+      err.textContent = t('⚠ Falsche Zugangsdaten', '⚠ Wrong credentials');
+    } else if (e.code === 'auth/too-many-requests') {
+      err.textContent = t('⚠ Zu viele Versuche — später erneut', '⚠ Too many attempts — try later');
+    } else if (e.code === 'auth/network-request-failed') {
+      err.textContent = t('⚠ Keine Verbindung', '⚠ No connection');
+    } else {
+      err.textContent = t('⚠ Login fehlgeschlagen', '⚠ Login failed');
+    }
+    err.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In / Anmelden';
   }
 };
 
@@ -1118,23 +1074,52 @@ document.getElementById('loginPass').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.doLogin();
 });
 
-window.doLogout = () => {
-  currentUser = null;
-  if (unsubProducts) {
-    if (typeof unsubProducts === 'function') unsubProducts();
-    else clearInterval(unsubProducts);
-    unsubProducts = null;
-  }
-  if (unsubHistory) {
-    if (typeof unsubHistory === 'function') unsubHistory();
-    else clearInterval(unsubHistory);
-    unsubHistory = null;
-  }
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
+window.doLogout = async () => {
+  try { await auth.signOut(); } catch(e) {}
+  // Aufräumen erfolgt im onAuthStateChanged-Handler
 };
+
+// Zentrale Anmeldelogik: reagiert auf Login UND Logout
+auth && auth.onAuthStateChanged(async (fbUser) => {
+  if (fbUser) {
+    // Rolle aus Firestore "roles"-Sammlung laden
+    let role = 'viewer';
+    try {
+      const snap = await db.collection('roles').doc(fbUser.uid).get();
+      if (snap.exists && snap.data() && snap.data().role) {
+        role = snap.data().role;
+      } else {
+        console.warn('Keine Rolle für UID', fbUser.uid, '— Standard: viewer');
+      }
+    } catch(e) {
+      console.warn('Rolle konnte nicht geladen werden:', e.message);
+    }
+
+    const namePart = (fbUser.email || '').split('@')[0];
+    currentUser = {
+      uid:         fbUser.uid,
+      email:       fbUser.email,
+      username:    fbUser.email,
+      role:        role,
+      displayName: namePart ? namePart.charAt(0).toUpperCase() + namePart.slice(1) : 'Benutzer'
+    };
+
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('app').style.flexDirection = 'column';
+    initApp();
+  } else {
+    // Logout / nicht angemeldet
+    currentUser = null;
+    if (unsubProducts) { if (typeof unsubProducts === 'function') unsubProducts(); else clearInterval(unsubProducts); unsubProducts = null; }
+    if (unsubHistory)  { if (typeof unsubHistory  === 'function') unsubHistory();  else clearInterval(unsubHistory);  unsubHistory  = null; }
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  }
+});
 
 // ══════════════════════════════════════════════
 // INIT
@@ -1676,71 +1661,60 @@ function renderAccounting() {
 }
 
 // ══════════════════════════════════════════════
-// USERS
+// USERS  (verwaltet in der Firebase-Konsole)
 // ══════════════════════════════════════════════
 function renderUsers() {
   const container = document.getElementById('usersList');
-  container.innerHTML = Object.entries(USERS).map(([username, u]) => {
-    const isAdmin  = u.role === 'admin';
-    const initials = u.displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-    return `<div class="user-card">
+  const u = currentUser || {};
+  const isAdmin = u.role === 'admin';
+  const initials = (u.displayName || '?').slice(0,2).toUpperCase();
+
+  container.innerHTML = `
+    <div class="user-card">
       <div class="user-avatar ${isAdmin ? 'admin-avatar' : 'viewer-avatar'}">${initials}</div>
       <div class="user-info">
-        <div class="user-card-name">${u.displayName}</div>
-        <div class="user-card-role">${username}</div>
+        <div class="user-card-name">${u.displayName || '—'}</div>
+        <div class="user-card-role">${u.email || ''}</div>
       </div>
-      <button class="btn-edit" style="margin-right:8px" onclick="openPwModal('${username}')"
-        title="${t('Passwort ändern','Change password')}">🔑</button>
       <div class="role-badge ${isAdmin ? 'admin' : 'viewer'}">
-        ${isAdmin ? t('ADMIN','ADMIN') : t('VIEWER','VIEWER')}
+        ${isAdmin ? 'ADMIN' : 'VIEWER'}
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">
+        ${t('Benutzerverwaltung','User management')}
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;font-family:var(--font-main)">
+        ${t(
+          'Benutzer werden zentral in der Firebase-Konsole verwaltet. Dort kannst du als Inhaber neue Benutzer anlegen, Passwörter zurücksetzen oder Benutzer löschen.',
+          'Users are managed centrally in the Firebase console. There you can create users, reset passwords, or delete users as the owner.'
+        )}
+      </div>
+      <div style="font-size:12px;color:var(--text3);line-height:1.9;font-family:var(--font-mono);margin-top:12px">
+        • ${t('Anlegen / Passwort','Create / password')}: Firebase → Authentication → Users<br>
+        • ${t('Rolle (Admin/Viewer)','Role (admin/viewer)')}: Firebase → Firestore → roles<br>
+        &nbsp;&nbsp;${t('Dokument-ID = User-UID, Feld','Document ID = user UID, field')} <b>role</b> = admin / viewer
       </div>
     </div>`;
-  }).join('');
 }
 
 // ══════════════════════════════════════════════
 // PASSWORD CHANGE
 // ══════════════════════════════════════════════
-let pwEditUser = null;
-
-window.openPwModal = (username) => {
-  if (!currentUser || currentUser.role !== 'admin') {
-    showToast(t('Nur Admins','Admins only'), 'error');
-    return;
-  }
-  pwEditUser = username;
-  document.getElementById('pwModalUser').textContent =
-    `${USERS[username].displayName}  (${username})`;
-  document.getElementById('pw-new').value = '';
-  document.getElementById('pw-confirm').value = '';
-  document.getElementById('pwModal').classList.add('active');
-  setTimeout(() => document.getElementById('pw-new').focus(), 300);
-};
-
+// PASSWORT-VERWALTUNG erfolgt jetzt in der Firebase-Konsole.
+// Diese Funktionen bleiben als leere Platzhalter, damit nichts bricht.
+window.openPwModal  = () => {};
 window.closePwModal = () => {
-  document.getElementById('pwModal').classList.remove('active');
-  pwEditUser = null;
+  const m = document.getElementById('pwModal');
+  if (m) m.classList.remove('active');
 };
+window.savePassword = () => {};
 
-window.savePassword = () => {
-  const np = document.getElementById('pw-new').value.trim();
-  const cp = document.getElementById('pw-confirm').value.trim();
-
-  if (!np)            { showToast(t('Passwort fehlt!','Password required!'), 'error'); return; }
-  if (np.length < 4)  { showToast(t('Mind. 4 Zeichen','Min. 4 characters'), 'error'); return; }
-  if (np !== cp)      { showToast(t('Passwörter ungleich','Passwords differ'), 'error'); return; }
-  if (!pwEditUser || !USERS[pwEditUser]) { closePwModal(); return; }
-
-  USERS[pwEditUser].password = np;
-  saveUsers();
-  closePwModal();
-  renderUsers();
-  showToast(t('Passwort geändert ✓','Password changed ✓'), 'success');
-};
-
-document.getElementById('pwModal').addEventListener('click', function(e) {
-  if (e.target === this) window.closePwModal();
-});
+(function(){
+  const m = document.getElementById('pwModal');
+  if (m) m.addEventListener('click', function(e){ if (e.target === this) m.classList.remove('active'); });
+})();
 
 // ══════════════════════════════════════════════
 // TOAST
