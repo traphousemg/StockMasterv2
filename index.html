@@ -272,6 +272,16 @@ body {
 
 .btn-add:active { transform: scale(0.97); }
 
+.btn-clear-history {
+  background: rgba(231,76,60,.1); color: var(--red);
+  border: 1px solid rgba(231,76,60,.25);
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 700; font-family: var(--font-main);
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+}
+
+.btn-clear-history:active { transform: scale(0.97); }
+
 /* SEARCH */
 .search-bar {
   background: var(--bg2); border: 1px solid var(--border);
@@ -805,6 +815,9 @@ textarea.input-field { resize: none; min-height: 80px; }
   <div class="section" id="sec-history">
     <div class="section-header">
       <div class="section-title" data-de="Historie" data-en="History">Historie</div>
+      <button class="btn-clear-history admin-only" id="btnClearHistory" onclick="confirmClearHistory()">
+        🗑 <span data-de="Alles löschen" data-en="Clear all">Alles löschen</span>
+      </button>
     </div>
     <div class="filter-strip">
       <button class="filter-btn active" onclick="setHistoryFilter('all')" id="hf-all">All</button>
@@ -1756,6 +1769,61 @@ window.setHistoryFilter = (f) => {
   });
   renderHistory();
 };
+
+// ══════════════════════════════════════════════
+// HISTORIE KOMPLETT LÖSCHEN (mit Bestätigung)
+// ══════════════════════════════════════════════
+window.confirmClearHistory = () => {
+  if (currentUser?.role !== 'admin') {
+    showToast(t('Nur Admins','Admins only'), 'error');
+    return;
+  }
+  if (history.length === 0) {
+    showToast(t('Historie ist bereits leer','History already empty'), 'error');
+    return;
+  }
+  document.getElementById('confirmTitle').textContent = t('⚠ Historie löschen?', '⚠ Clear history?');
+  document.getElementById('confirmText').textContent  =
+    t(`Wirklich die gesamte Historie (${history.length} Einträge) unwiderruflich löschen? Lagerbestände bleiben unverändert.`,
+      `Permanently delete the entire history (${history.length} entries)? Stock levels stay unchanged.`);
+  document.getElementById('confirmOkBtn').onclick = () => clearHistory();
+  document.getElementById('confirmOverlay').classList.add('active');
+};
+
+async function clearHistory() {
+  closeConfirm();
+  try {
+    if (useFirebase) {
+      const snap = await db.collection('history').get();
+      const batchSize = 400;
+      let batch = db.batch();
+      let count = 0;
+      for (const doc of snap.docs) {
+        batch.delete(doc.ref);
+        count++;
+        if (count % batchSize === 0) {
+          await batch.commit();
+          batch = db.batch();
+        }
+      }
+      if (count % batchSize !== 0) await batch.commit();
+      history = [];
+      renderHistory();
+      renderAccounting();
+      renderSummary();
+    } else {
+      localSet('history', []);
+      history = [];
+      renderHistory();
+      renderAccounting();
+      renderSummary();
+    }
+    showToast(t('Historie gelöscht ✓','History cleared ✓'), 'success');
+  } catch(e) {
+    console.error(e);
+    showToast(t('Fehler beim Löschen','Delete error'), 'error');
+  }
+}
 
 // ══════════════════════════════════════════════
 // NOTES  (gemeinsamer Notizblock — nur Text)
