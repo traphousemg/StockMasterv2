@@ -380,11 +380,15 @@ body {
 .hi-icon.in  { background: rgba(46,204,113,.15); }
 .hi-icon.out { background: rgba(231,76,60,.15); }
 
-.hi-body { flex: 1; }
+.hi-body { flex: 1; min-width: 0; }
 .hi-product { font-size: 14px; font-weight: 700; }
 .hi-meta {
   font-size: 11px; color: var(--text3); font-family: var(--font-mono);
-  margin-top: 2px;
+  margin-top: 2px; word-break: break-word;
+}
+.hi-user {
+  font-size: 11px; color: var(--accent); font-family: var(--font-mono);
+  margin-top: 2px; word-break: break-all;
 }
 
 .hi-right { text-align: right; }
@@ -392,6 +396,66 @@ body {
 .hi-qty.in  { color: var(--green); }
 .hi-qty.out { color: var(--red); }
 .hi-val { font-size: 11px; color: var(--text3); font-family: var(--font-mono); margin-top: 2px; }
+
+/* NOTES */
+.note-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+  transition: border-color .2s;
+}
+
+.note-card.done { opacity: 0.55; }
+.note-card.debt { border-color: rgba(243,156,18,.35); }
+
+.note-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 10px; margin-bottom: 8px;
+}
+
+.note-text {
+  font-size: 15px; font-weight: 600; flex: 1; line-height: 1.4;
+  word-break: break-word; white-space: pre-wrap;
+}
+
+.note-card.done .note-text { text-decoration: line-through; }
+
+.note-amount {
+  font-size: 16px; font-weight: 800; font-family: var(--font-mono);
+  color: var(--gold); white-space: nowrap; flex-shrink: 0;
+}
+
+.note-meta {
+  font-size: 11px; color: var(--text3); font-family: var(--font-mono);
+  margin-top: 6px; word-break: break-all;
+}
+
+.note-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+.btn-note-done {
+  flex: 1; padding: 9px; background: rgba(46,204,113,.15);
+  border: 1px solid rgba(46,204,113,.3); border-radius: var(--radius-sm);
+  color: var(--green); font-size: 12px; font-weight: 700;
+  font-family: var(--font-main); cursor: pointer;
+}
+
+.btn-note-reopen {
+  flex: 1; padding: 9px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text2); font-size: 12px; font-weight: 700;
+  font-family: var(--font-main); cursor: pointer;
+}
+
+.btn-note-edit {
+  padding: 9px 14px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text2); font-size: 13px; cursor: pointer;
+}
+
+.btn-note-delete {
+  padding: 9px 14px; background: rgba(231,76,60,.1);
+  border: 1px solid rgba(231,76,60,.2); border-radius: var(--radius-sm);
+  color: var(--red); font-size: 15px; cursor: pointer;
+}
 
 /* MODAL */
 .modal-overlay {
@@ -759,6 +823,25 @@ textarea.input-field { resize: none; min-height: 80px; }
     </div>
   </div>
 
+  <!-- NOTES -->
+  <div class="section" id="sec-notes">
+    <div class="section-header">
+      <div class="section-title" data-de="Notizen" data-en="Notes">Notizen</div>
+      <button class="btn-add admin-only" id="btnAddNote" onclick="openNoteModal()">
+        + <span data-de="Notiz" data-en="Note">Notiz</span>
+      </button>
+    </div>
+    <div class="filter-strip">
+      <button class="filter-btn active" onclick="setNotesFilter('open')" id="nf-open"><span data-de="Offen" data-en="Open">Offen</span></button>
+      <button class="filter-btn" onclick="setNotesFilter('debt')" id="nf-debt">💰 <span data-de="Schulden" data-en="Debts">Schulden</span></button>
+      <button class="filter-btn" onclick="setNotesFilter('done')" id="nf-done">✓ <span data-de="Erledigt" data-en="Done">Erledigt</span></button>
+      <button class="filter-btn" onclick="setNotesFilter('all')" id="nf-all">All</button>
+    </div>
+    <div id="notesList">
+      <div class="loading"><div class="spinner"></div> Loading…</div>
+    </div>
+  </div>
+
   <!-- ACCOUNTING -->
   <div class="section" id="sec-accounting">
     <div class="section-title" data-de="Buchhaltung" data-en="Accounting" style="margin-bottom:16px">Buchhaltung</div>
@@ -810,6 +893,9 @@ textarea.input-field { resize: none; min-height: 80px; }
     </div>
     <div class="nav-tab" onclick="showSection('accounting')" id="tab-accounting">
       <span class="nav-icon">💶</span><span data-de="Buchhaltung" data-en="Accounting">Buchhaltung</span>
+    </div>
+    <div class="nav-tab" onclick="showSection('notes')" id="tab-notes">
+      <span class="nav-icon">📝</span><span data-de="Notizen" data-en="Notes">Notizen</span>
     </div>
     <div class="nav-tab admin-only" onclick="showSection('users')" id="tab-users" style="display:none;">
       <span class="nav-icon">👥</span><span data-de="Benutzer" data-en="Users">Benutzer</span>
@@ -916,6 +1002,47 @@ textarea.input-field { resize: none; min-height: 80px; }
   </div>
 </div>
 
+<!-- NOTE MODAL -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="noteModalTitle">Neue Notiz / New Note</div>
+
+    <div class="input-group">
+      <label class="input-label" data-de="Notiz / Beschreibung" data-en="Note / Description">Notiz / Beschreibung</label>
+      <textarea class="input-field" id="nm-text" placeholder="z.B. Kunde Müller schuldet noch Ware aus Lieferung 12"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="input-group">
+        <label class="input-label" data-de="Betrag € (optional)" data-en="Amount € (optional)">Betrag € (optional)</label>
+        <input class="input-field" id="nm-amount" type="number" inputmode="decimal" placeholder="0.00" step="0.01">
+      </div>
+      <div class="input-group">
+        <label class="input-label" data-de="Typ" data-en="Type">Typ</label>
+        <select class="input-field" id="nm-type">
+          <option value="note" data-de="Notiz" data-en="Note">Notiz</option>
+          <option value="debt" data-de="Schuld" data-en="Debt">Schuld</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label" data-de="Person / Bezug (optional)" data-en="Person / Reference (optional)">Person / Bezug (optional)</label>
+      <input class="input-field" id="nm-ref" type="text" placeholder="z.B. Kunde Müller">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeNoteModal()">
+        <span data-de="Abbrechen" data-en="Cancel">Abbrechen</span>
+      </button>
+      <button class="btn-save" onclick="saveNote()">
+        <span data-de="Speichern" data-en="Save">Speichern</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM -->
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-box">
@@ -967,15 +1094,8 @@ try {
   alert("Firebase konnte nicht geladen werden. Bitte Seite neu laden oder Internetverbindung prüfen.");
 }
 
-// useFirebase bleibt true — App arbeitet ausschließlich mit Firestore.
 const useFirebase = true;
 
-// ══════════════════════════════════════════════
-// BENUTZERVERWALTUNG
-// Benutzer werden in der Firebase-Konsole verwaltet:
-//   Authentication → Users (anlegen / Passwort ändern / löschen)
-//   Firestore → Sammlung "roles" → Dokument-ID = User-UID, Feld role
-// ══════════════════════════════════════════════
 function saveUsers() { /* nicht mehr verwendet — Firebase verwaltet Benutzer */ }
 
 // ══════════════════════════════════════════════
@@ -986,13 +1106,17 @@ let currentCurrency = 'EUR';
 let currentLang     = 'de';
 let products        = [];
 let history         = [];
+let notes           = [];
 let currentFilter   = 'all';
 let historyFilter   = 'all';
+let notesFilter     = 'open';
 let editingProductId  = null;
+let editingNoteId     = null;
 let bookingProductId  = null;
 let bookingType       = 'in';
 let unsubProducts     = null;
 let unsubHistory      = null;
+let unsubNotes        = null;
 
 const EUR_USD = 1.08;
 
@@ -1013,6 +1137,13 @@ function fmt(eur) {
   return sym + Number(val).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// HTML-Escape gegen kaputtes Layout / Injection in Texten
+function esc(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // ══════════════════════════════════════════════
 // LANGUAGE
 // ══════════════════════════════════════════════
@@ -1030,7 +1161,7 @@ function t(de, en) { return currentLang === 'de' ? de : en; }
 // ══════════════════════════════════════════════
 // LOGIN / LOGOUT  (Firebase Authentication)
 // ══════════════════════════════════════════════
-window.switchLoginTab = () => {}; // nicht mehr verwendet
+window.switchLoginTab = () => {};
 
 window.doLogin = async () => {
   const email = document.getElementById('loginUser').value.trim();
@@ -1050,7 +1181,6 @@ window.doLogin = async () => {
 
   try {
     await auth.signInWithEmailAndPassword(email, pass);
-    // Weiter geht es im onAuthStateChanged-Handler unten
   } catch(e) {
     console.warn('Login fehlgeschlagen:', e.code);
     if (e.code === 'auth/invalid-email' || e.code === 'auth/user-not-found' ||
@@ -1076,13 +1206,10 @@ document.getElementById('loginPass').addEventListener('keydown', e => {
 
 window.doLogout = async () => {
   try { await auth.signOut(); } catch(e) {}
-  // Aufräumen erfolgt im onAuthStateChanged-Handler
 };
 
-// Zentrale Anmeldelogik: reagiert auf Login UND Logout
 auth && auth.onAuthStateChanged(async (fbUser) => {
   if (fbUser) {
-    // Rolle aus Firestore "roles"-Sammlung laden
     let role = 'viewer';
     try {
       const snap = await db.collection('roles').doc(fbUser.uid).get();
@@ -1110,10 +1237,10 @@ auth && auth.onAuthStateChanged(async (fbUser) => {
     document.getElementById('app').style.flexDirection = 'column';
     initApp();
   } else {
-    // Logout / nicht angemeldet
     currentUser = null;
     if (unsubProducts) { if (typeof unsubProducts === 'function') unsubProducts(); else clearInterval(unsubProducts); unsubProducts = null; }
     if (unsubHistory)  { if (typeof unsubHistory  === 'function') unsubHistory();  else clearInterval(unsubHistory);  unsubHistory  = null; }
+    if (unsubNotes)    { if (typeof unsubNotes    === 'function') unsubNotes();    else clearInterval(unsubNotes);    unsubNotes    = null; }
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
     document.getElementById('loginUser').value = '';
@@ -1140,6 +1267,7 @@ function initApp() {
 
   subscribeProducts();
   subscribeHistory();
+  subscribeNotes();
   showSection('warehouse');
 }
 
@@ -1202,6 +1330,27 @@ function subscribeHistory() {
   }
 }
 
+function subscribeNotes() {
+  if (useFirebase) {
+    unsubNotes = db.collection('notes').orderBy('createdAt', 'desc').onSnapshot(snap => {
+      notes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderNotes();
+    }, err => {
+      console.error('Notes error:', err);
+      showToast(t('Notizen: Verbindungsfehler — Regeln prüfen', 'Notes: connection error — check rules'), 'error');
+      notes = localGet('notes');
+      renderNotes();
+    });
+  } else {
+    notes = localGet('notes');
+    renderNotes();
+    unsubNotes = setInterval(() => {
+      notes = localGet('notes');
+      renderNotes();
+    }, 3000);
+  }
+}
+
 // ══════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════
@@ -1244,7 +1393,7 @@ function renderCategoryFilters() {
   const strip = document.getElementById('categoryFilters');
   strip.innerHTML = `<button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">All</button>`;
   cats.forEach(cat => {
-    strip.innerHTML += `<button class="filter-btn ${currentFilter === cat ? 'active' : ''}" onclick="setFilter('${cat}')">${cat}</button>`;
+    strip.innerHTML += `<button class="filter-btn ${currentFilter === cat ? 'active' : ''}" onclick="setFilter('${esc(cat)}')">${esc(cat)}</button>`;
   });
 }
 
@@ -1288,13 +1437,13 @@ function renderProducts() {
     return `<div class="product-card">
       <div class="pc-top">
         <div>
-          <div class="pc-name">${p.name || '—'}</div>
-          <div class="pc-sku">${p.sku || ''}</div>
-          ${p.category ? `<div class="cat-tag">${p.category}</div>` : ''}
+          <div class="pc-name">${esc(p.name) || '—'}</div>
+          <div class="pc-sku">${esc(p.sku)}</div>
+          ${p.category ? `<div class="cat-tag">${esc(p.category)}</div>` : ''}
         </div>
         <div class="pc-stock">
           <div class="pc-qty ${qtyClass}">${stock}</div>
-          <div class="pc-unit">${p.unit || t('Stück','pcs')}</div>
+          <div class="pc-unit">${esc(p.unit) || t('Stück','pcs')}</div>
         </div>
       </div>
       <div class="pc-prices">
@@ -1317,14 +1466,14 @@ function renderProducts() {
           <button class="btn-in"     onclick="openBooking('${p.id}','in')">📥 ${t('Ein','In')}</button>
           <button class="btn-out"    onclick="openBooking('${p.id}','out')">📤 ${t('Aus','Out')}</button>
           <button class="btn-edit"   onclick="openProductModal('${p.id}')">✏️</button>
-          <button class="btn-delete" onclick="confirmDelete('${p.id}','${(p.name||'').replace(/'/g,"\\'")}')">🗑</button>
+          <button class="btn-delete" onclick="confirmDelete('${p.id}','${esc((p.name||'').replace(/'/g,"\\'"))}')">🗑</button>
         ` : `
           <div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);padding:8px;">
             ${t('Nur Lesezugriff','View only')}
           </div>
         `}
       </div>
-      ${p.notes ? `<div style="margin-top:8px;font-size:12px;color:var(--text3);font-family:var(--font-mono)">📝 ${p.notes}</div>` : ''}
+      ${p.notes ? `<div style="margin-top:8px;font-size:12px;color:var(--text3);font-family:var(--font-mono)">📝 ${esc(p.notes)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -1494,6 +1643,7 @@ window.saveBooking = async () => {
   const newStock = bookingType === 'in' ? (p.stock || 0) + qty : (p.stock || 0) - qty;
   const now      = new Date().toISOString();
 
+  // WICHTIG: userEmail + userId mitspeichern → beide Admins eindeutig unterscheidbar
   const histEntry = {
     productId:   bookingProductId,
     productName: p.name,
@@ -1505,6 +1655,8 @@ window.saveBooking = async () => {
     sellPrice:   p.sellPrice || 0,
     note:        document.getElementById('bm-note').value.trim(),
     user:        currentUser.displayName,
+    userEmail:   currentUser.email || '',
+    userId:      currentUser.uid   || '',
     timestamp:   now,
   };
 
@@ -1556,19 +1708,22 @@ function renderHistory() {
   }
 
   container.innerHTML = list.map(h => {
-    const date    = h.timestamp?.toDate ? h.timestamp.toDate() : new Date();
+    const date    = h.timestamp?.toDate ? h.timestamp.toDate() : new Date(h.timestamp || Date.now());
     const dateStr = date.toLocaleDateString('de-DE') + ' ' + date.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
     const val     = h.type === 'out'
       ? (h.qty || 0) * (h.sellPrice || 0)
       : (h.qty || 0) * (h.buyPrice  || 0);
     const valLabel = h.type === 'out' ? t('Umsatz','Revenue') : t('Kosten','Cost');
+    // E-Mail zeigt eindeutig, welcher Admin gebucht hat; Fallback auf user-Name
+    const who = h.userEmail ? h.userEmail : (h.user || '—');
 
     return `<div class="history-item">
       <div class="hi-icon ${h.type}">${h.type === 'in' ? '📥' : '📤'}</div>
       <div class="hi-body">
-        <div class="hi-product">${h.productName || '—'}</div>
-        <div class="hi-meta">${dateStr} · ${h.user || '—'}</div>
-        ${h.note ? `<div class="hi-meta">📝 ${h.note}</div>` : ''}
+        <div class="hi-product">${esc(h.productName) || '—'}</div>
+        <div class="hi-meta">${dateStr}</div>
+        <div class="hi-user">👤 ${esc(who)}</div>
+        ${h.note ? `<div class="hi-meta">📝 ${esc(h.note)}</div>` : ''}
       </div>
       <div class="hi-right">
         <div class="hi-qty ${h.type}">${h.type === 'in' ? '+' : '-'}${h.qty}</div>
@@ -1585,6 +1740,209 @@ window.setHistoryFilter = (f) => {
   });
   renderHistory();
 };
+
+// ══════════════════════════════════════════════
+// NOTES  (gemeinsamer Notizblock für Schulden etc.)
+// ══════════════════════════════════════════════
+window.openNoteModal = (id = null) => {
+  if (currentUser?.role !== 'admin') {
+    showToast(t('Nur Admins','Admins only'), 'error');
+    return;
+  }
+  editingNoteId = id;
+  const title = document.getElementById('noteModalTitle');
+
+  if (id) {
+    const n = notes.find(x => x.id === id);
+    if (!n) return;
+    title.textContent = t('Notiz bearbeiten', 'Edit Note');
+    document.getElementById('nm-text').value   = n.text   || '';
+    document.getElementById('nm-amount').value = n.amount  != null ? n.amount : '';
+    document.getElementById('nm-type').value   = n.noteType || 'note';
+    document.getElementById('nm-ref').value    = n.ref     || '';
+  } else {
+    title.textContent = t('Neue Notiz', 'New Note');
+    document.getElementById('nm-text').value   = '';
+    document.getElementById('nm-amount').value = '';
+    document.getElementById('nm-type').value   = 'note';
+    document.getElementById('nm-ref').value    = '';
+  }
+
+  document.getElementById('noteModal').classList.add('active');
+  setTimeout(() => document.getElementById('nm-text').focus(), 300);
+};
+
+window.closeNoteModal = () => {
+  document.getElementById('noteModal').classList.remove('active');
+  editingNoteId = null;
+};
+
+window.saveNote = async () => {
+  const text = document.getElementById('nm-text').value.trim();
+  if (!text) { showToast(t('Text fehlt!','Text required!'), 'error'); return; }
+
+  const amountRaw = document.getElementById('nm-amount').value;
+  const data = {
+    text,
+    amount:   amountRaw === '' ? null : (parseFloat(amountRaw) || 0),
+    noteType: document.getElementById('nm-type').value,
+    ref:      document.getElementById('nm-ref').value.trim(),
+    updatedAt: new Date().toISOString(),
+    updatedByEmail: currentUser.email || '',
+  };
+
+  try {
+    if (useFirebase) {
+      if (editingNoteId) {
+        await db.collection('notes').doc(editingNoteId).update(data);
+      } else {
+        data.done            = false;
+        data.createdAt       = new Date().toISOString();
+        data.createdByEmail  = currentUser.email || '';
+        data.createdByName   = currentUser.displayName || '';
+        data.createdById     = currentUser.uid || '';
+        await db.collection('notes').add(data);
+      }
+    } else {
+      let arr = localGet('notes');
+      if (editingNoteId) {
+        const idx = arr.findIndex(n => n.id === editingNoteId);
+        if (idx > -1) arr[idx] = { ...arr[idx], ...data };
+      } else {
+        data.id              = localId();
+        data.done            = false;
+        data.createdAt       = new Date().toISOString();
+        data.createdByEmail  = currentUser.email || '';
+        data.createdByName   = currentUser.displayName || '';
+        data.createdById     = currentUser.uid || '';
+        arr.unshift(data);
+      }
+      localSet('notes', arr);
+      notes = arr;
+      renderNotes();
+    }
+    showToast(editingNoteId ? t('Notiz aktualisiert ✓','Note updated ✓') : t('Notiz gespeichert ✓','Note saved ✓'), 'success');
+    closeNoteModal();
+  } catch(e) {
+    console.error(e);
+    showToast(t('Fehler beim Speichern','Save error'), 'error');
+  }
+};
+
+window.toggleNoteDone = async (id, done) => {
+  try {
+    if (useFirebase) {
+      await db.collection('notes').doc(id).update({
+        done: done,
+        updatedAt: new Date().toISOString(),
+        updatedByEmail: currentUser.email || ''
+      });
+    } else {
+      let arr = localGet('notes');
+      const idx = arr.findIndex(n => n.id === id);
+      if (idx > -1) { arr[idx].done = done; }
+      localSet('notes', arr);
+      notes = arr;
+      renderNotes();
+    }
+  } catch(e) {
+    showToast(t('Fehler','Error'), 'error');
+  }
+};
+
+window.confirmDeleteNote = (id) => {
+  document.getElementById('confirmTitle').textContent = t('⚠ Notiz löschen?', '⚠ Delete note?');
+  document.getElementById('confirmText').textContent  =
+    t('Diese Notiz wirklich löschen?', 'Really delete this note?');
+  document.getElementById('confirmOkBtn').onclick = () => deleteNote(id);
+  document.getElementById('confirmOverlay').classList.add('active');
+};
+
+async function deleteNote(id) {
+  closeConfirm();
+  try {
+    if (useFirebase) {
+      await db.collection('notes').doc(id).delete();
+    } else {
+      let arr = localGet('notes').filter(n => n.id !== id);
+      localSet('notes', arr);
+      notes = arr;
+      renderNotes();
+    }
+    showToast(t('Notiz gelöscht','Note deleted'), 'success');
+  } catch(e) {
+    showToast(t('Fehler beim Löschen','Delete error'), 'error');
+  }
+}
+
+window.setNotesFilter = (f) => {
+  notesFilter = f;
+  ['open','debt','done','all'].forEach(x => {
+    document.getElementById('nf-' + x).classList.toggle('active', x === f);
+  });
+  renderNotes();
+};
+
+function renderNotes() {
+  const isAdmin   = currentUser?.role === 'admin';
+  const container = document.getElementById('notesList');
+  let list = notes.slice();
+
+  if (notesFilter === 'open')      list = list.filter(n => !n.done);
+  else if (notesFilter === 'done') list = list.filter(n => n.done);
+  else if (notesFilter === 'debt') list = list.filter(n => n.noteType === 'debt');
+
+  // offene Schulden-Summe
+  const debtTotal = notes
+    .filter(n => n.noteType === 'debt' && !n.done && typeof n.amount === 'number')
+    .reduce((s, n) => s + n.amount, 0);
+
+  let header = '';
+  if (debtTotal > 0) {
+    header = `<div class="note-card debt" style="margin-bottom:14px">
+      <div class="note-top">
+        <div class="note-text">${t('Offene Schulden gesamt','Total open debts')}</div>
+        <div class="note-amount">${fmt(debtTotal)}</div>
+      </div>
+    </div>`;
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = header + `<div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div class="empty-text">${t('Keine Notizen', 'No notes')}</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = header + list.map(n => {
+    const created = n.createdAt ? new Date(n.createdAt) : null;
+    const dateStr = created
+      ? created.toLocaleDateString('de-DE') + ' ' + created.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' })
+      : '—';
+    const who = n.createdByEmail || n.createdByName || '—';
+    const isDebt = n.noteType === 'debt';
+
+    return `<div class="note-card ${n.done ? 'done' : ''} ${isDebt ? 'debt' : ''}">
+      <div class="note-top">
+        <div class="note-text">${isDebt ? '💰 ' : ''}${esc(n.text)}</div>
+        ${typeof n.amount === 'number' ? `<div class="note-amount">${fmt(n.amount)}</div>` : ''}
+      </div>
+      ${n.ref ? `<div class="note-meta">🔖 ${esc(n.ref)}</div>` : ''}
+      <div class="note-meta">🗓 ${dateStr} · 👤 ${esc(who)}</div>
+      ${n.updatedByEmail && n.updatedByEmail !== n.createdByEmail
+        ? `<div class="note-meta">✏️ ${t('zuletzt geändert von','last edited by')} ${esc(n.updatedByEmail)}</div>` : ''}
+      ${isAdmin ? `
+      <div class="note-actions">
+        ${n.done
+          ? `<button class="btn-note-reopen" onclick="toggleNoteDone('${n.id}',false)">↩ ${t('Wieder öffnen','Reopen')}</button>`
+          : `<button class="btn-note-done" onclick="toggleNoteDone('${n.id}',true)">✓ ${t('Erledigt','Done')}</button>`}
+        <button class="btn-note-edit"   onclick="openNoteModal('${n.id}')">✏️</button>
+        <button class="btn-note-delete" onclick="confirmDeleteNote('${n.id}')">🗑</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
 
 // ══════════════════════════════════════════════
 // ACCOUNTING
@@ -1620,12 +1978,12 @@ function renderAccounting() {
     return `<div class="product-card" style="margin-bottom:10px">
       <div class="pc-top">
         <div>
-          <div class="pc-name">${p.name}</div>
-          ${p.category ? `<div class="cat-tag">${p.category}</div>` : ''}
+          <div class="pc-name">${esc(p.name)}</div>
+          ${p.category ? `<div class="cat-tag">${esc(p.category)}</div>` : ''}
         </div>
         <div class="pc-stock">
           <div class="pc-qty good">${p.stock||0}</div>
-          <div class="pc-unit">${p.unit||t('Stück','pcs')}</div>
+          <div class="pc-unit">${esc(p.unit)||t('Stück','pcs')}</div>
         </div>
       </div>
       <div class="pc-prices">
@@ -1671,10 +2029,10 @@ function renderUsers() {
 
   container.innerHTML = `
     <div class="user-card">
-      <div class="user-avatar ${isAdmin ? 'admin-avatar' : 'viewer-avatar'}">${initials}</div>
+      <div class="user-avatar ${isAdmin ? 'admin-avatar' : 'viewer-avatar'}">${esc(initials)}</div>
       <div class="user-info">
-        <div class="user-card-name">${u.displayName || '—'}</div>
-        <div class="user-card-role">${u.email || ''}</div>
+        <div class="user-card-name">${esc(u.displayName) || '—'}</div>
+        <div class="user-card-role">${esc(u.email) || ''}</div>
       </div>
       <div class="role-badge ${isAdmin ? 'admin' : 'viewer'}">
         ${isAdmin ? 'ADMIN' : 'VIEWER'}
@@ -1700,10 +2058,8 @@ function renderUsers() {
 }
 
 // ══════════════════════════════════════════════
-// PASSWORD CHANGE
+// PASSWORD CHANGE (Platzhalter – Firebase-Konsole)
 // ══════════════════════════════════════════════
-// PASSWORT-VERWALTUNG erfolgt jetzt in der Firebase-Konsole.
-// Diese Funktionen bleiben als leere Platzhalter, damit nichts bricht.
 window.openPwModal  = () => {};
 window.closePwModal = () => {
   const m = document.getElementById('pwModal');
@@ -1736,6 +2092,9 @@ document.getElementById('productModal').addEventListener('click', function(e) {
 });
 document.getElementById('bookingModal').addEventListener('click', function(e) {
   if (e.target === this) window.closeBookingModal();
+});
+document.getElementById('noteModal').addEventListener('click', function(e) {
+  if (e.target === this) window.closeNoteModal();
 });
 document.getElementById('confirmOverlay').addEventListener('click', function(e) {
   if (e.target === this) window.closeConfirm();
